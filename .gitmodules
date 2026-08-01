@@ -1,0 +1,3 @@
+[submodule "external/SCHP"]
+	path = external/SCHP
+	url = https://github.com/GoGoDuck912/Self-Correction-Human-Parsing.git
