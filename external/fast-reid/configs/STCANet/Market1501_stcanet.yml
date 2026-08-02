@@ -1,0 +1,17 @@
+_BASE_: "../Base-bagtricks.yml"
+
+MODEL:
+  BACKBONE:
+    NAME: build_stcanet_resnet_backbone
+    WITH_NL: False
+  META_ARCHITECTURE: STCANetBaseline
+  STCANET:
+    ALPHA: 0.5
+    MASK_LOSS_MODE: 'ce'
+    WARMUP_EPOCHS: 0
+
+DATASETS:
+  NAMES: ("STCANetMarket1501",)
+  TESTS: ("Market1501",)
+
+OUTPUT_DIR: /kaggle/working/smoke_test_stcanet
