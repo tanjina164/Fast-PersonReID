@@ -50,7 +50,7 @@ def build_dist(feat_1: torch.Tensor, feat_2: torch.Tensor, metric: str = "euclid
 
     elif metric == "jaccard":
         feat = torch.cat((feat_1, feat_2), dim=0)
-        dist = compute_jaccard_distance(feat, k1=kwargs["k1"], k2=kwargs["k2"], search_option=0)
+        dist = compute_jaccard_distance(feat, k1=kwargs["k1"], k2=kwargs["k2"], search_option=3)
         return dist[: feat_1.size(0), feat_1.size(0):]
 
 
