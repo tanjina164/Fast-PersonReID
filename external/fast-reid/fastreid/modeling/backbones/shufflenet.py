@@ -184,7 +184,7 @@ def build_shufflenetv2_backbone(cfg):
 
     if pretrain:
         new_state_dict = OrderedDict()
-        state_dict = torch.load(pretrain_path)["state_dict"]
+        state_dict = torch.load(pretrain_path, weights_only=False)["state_dict"]
         for k, v in state_dict.items():
             if k[:7] == 'module.':
                 k = k[7:]

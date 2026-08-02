@@ -226,7 +226,7 @@ def init_pretrained_weights(key):
     comm.synchronize()
 
     logger.info(f"Loading pretrained model from {cached_file}")
-    state_dict = torch.load(cached_file, map_location=torch.device("cpu"))["model_state"]
+    state_dict = torch.load(cached_file, map_location=torch.device("cpu"), weights_only=False)["model_state"]
 
     return state_dict
 
@@ -257,7 +257,7 @@ def build_effnet_backbone(cfg):
         # Load pretrain path if specifically
         if pretrain_path:
             try:
-                state_dict = torch.load(pretrain_path, map_location=torch.device('cpu'))["model_state"]
+                state_dict = torch.load(pretrain_path, map_location=torch.device('cpu'), weights_only=False)["model_state"]
                 logger.info(f"Loading pretrained model from {pretrain_path}")
             except FileNotFoundError as e:
                 logger.info(f'{pretrain_path} is not found! Please check this path.')
