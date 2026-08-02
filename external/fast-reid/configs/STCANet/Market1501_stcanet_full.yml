@@ -1,0 +1,34 @@
+_BASE_: "../Base-bagtricks.yml"
+
+MODEL:
+  BACKBONE:
+    NAME: build_stcanet_resnet_backbone
+    WITH_IBN: True
+    WITH_NL: False
+  HEADS:
+    POOL_LAYER: GeneralizedMeanPooling
+    WITH_BNNECK: True
+  META_ARCHITECTURE: STCANetBaseline
+  STCANET:
+    ALPHA: 0.5
+    MASK_LOSS_MODE: 'ce'
+    WARMUP_EPOCHS: 10
+
+DATASETS:
+  NAMES: ("STCANetMarket1501",)
+  TESTS: ("Market1501",)
+
+SOLVER:
+  AMP:
+    ENABLED: True
+  MAX_EPOCH: 100
+  IMS_PER_BATCH: 64
+
+TEST:
+  RERANK:
+    ENABLED: True
+  FLIP:
+    ENABLED: True
+  EVAL_PERIOD: 20
+
+OUTPUT_DIR: /kaggle/working/stcanet_full_training
