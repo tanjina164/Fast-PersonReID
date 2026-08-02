@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 """
 Training entry-point for the STCANet-enhanced FastReID pipeline (Mission 2).
-Mirrors external/fast-reid/tools/train_net.py, with three additions:
+Mirrors external/fast-reid/tools/train_net.py, with these additions:
   1. add_stcanet_config(cfg) registers MODEL.STCANET.* config keys
-  2. build_stcanet_train_loader is used instead of the default train
-     loader, so training batches include the "masks" key
-  3. MaskLossWarmupHook is registered on the trainer, implementing the
-     mask-loss warm-up schedule
+  2. build_stcanet_train_loader excludes a per-identity validation subset
+     (MODEL.STCANET.VAL_RATIO) so training batches include the "masks" key
+  3. MaskLossWarmupHook implements the mask-loss warm-up schedule
+  4. ValidationLossHook periodically logs validation loss (CE+Triplet+Mask)
+     on the held-out subset, to monitor overfitting during training
 """
 
 import sys
@@ -22,20 +23,31 @@ from fastreid.engine import DefaultTrainer, default_argument_parser, default_set
 from fastreid.utils.checkpoint import Checkpointer
 
 from stcanet.image_pipeline.configs.stcanet_config import add_stcanet_config
-from stcanet.image_pipeline.datasets.build_seg import build_stcanet_train_loader
-from stcanet.image_pipeline.modules.stcanet_hooks import MaskLossWarmupHook
+from stcanet.image_pipeline.datasets.build_seg import build_stcanet_train_loader, build_stcanet_val_loader
+from stcanet.image_pipeline.modules.stcanet_hooks import MaskLossWarmupHook, ValidationLossHook
 
 
 class STCANetTrainer(DefaultTrainer):
     @classmethod
     def build_train_loader(cls, cfg):
-        return build_stcanet_train_loader(cfg)
+        return build_stcanet_train_loader(cfg, val_ratio=cfg.MODEL.STCANET.VAL_RATIO)
 
     def build_hooks(self):
         hooks = super().build_hooks()
+
         warmup_epochs = self.cfg.MODEL.STCANET.WARMUP_EPOCHS
         iters_per_epoch = self.iters_per_epoch
         hooks.insert(0, MaskLossWarmupHook(warmup_epochs, iters_per_epoch))
+
+        if self.cfg.MODEL.STCANET.VAL_RATIO > 0:
+            val_loader = build_stcanet_val_loader(
+                self.cfg, val_ratio=self.cfg.MODEL.STCANET.VAL_RATIO
+            )
+            hooks.insert(
+                1,
+                ValidationLossHook(val_loader, self.cfg.MODEL.STCANET.VAL_PERIOD_ITERS)
+            )
+
         return hooks
 
 
