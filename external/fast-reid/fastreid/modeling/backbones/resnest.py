@@ -341,7 +341,7 @@ def build_resnest_backbone(cfg):
         # Load pretrain path if specifically
         if pretrain_path:
             try:
-                state_dict = torch.load(pretrain_path, map_location=torch.device('cpu'))
+                state_dict = torch.load(pretrain_path, map_location=torch.device('cpu', weights_only=False))
                 logger.info(f"Loading pretrained model from {pretrain_path}")
             except FileNotFoundError as e:
                 logger.info(f'{pretrain_path} is not found! Please check this path.')

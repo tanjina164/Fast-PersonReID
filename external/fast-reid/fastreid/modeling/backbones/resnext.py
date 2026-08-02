@@ -266,7 +266,7 @@ def init_pretrained_weights(key):
     comm.synchronize()
 
     logger.info(f"Loading pretrained model from {cached_file}")
-    state_dict = torch.load(cached_file, map_location=torch.device('cpu'))
+    state_dict = torch.load(cached_file, map_location=torch.device('cpu', weights_only=False))
 
     return state_dict
 
@@ -301,7 +301,7 @@ def build_resnext_backbone(cfg):
     if pretrain:
         if pretrain_path:
             try:
-                state_dict = torch.load(pretrain_path, map_location=torch.device('cpu'))['model']
+                state_dict = torch.load(pretrain_path, map_location=torch.device('cpu', weights_only=False))['model']
                 # Remove module.encoder in name
                 new_state_dict = {}
                 for k in state_dict:

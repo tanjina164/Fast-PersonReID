@@ -358,7 +358,7 @@ def build_vit_backbone(cfg):
 
     if pretrain:
         try:
-            state_dict = torch.load(pretrain_path, map_location=torch.device('cpu'))
+            state_dict = torch.load(pretrain_path, map_location=torch.device('cpu', weights_only=False))
             logger.info(f"Loading pretrained model from {pretrain_path}")
 
             if 'model' in state_dict:
