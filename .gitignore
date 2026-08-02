@@ -2,6 +2,6 @@ external/SCHP/checkpoints/
 *.pth
 *.pth.tar
 *.ckpt
-data/
+/data/
 __pycache__/
 *.pyc
