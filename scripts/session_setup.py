@@ -15,7 +15,6 @@ import sys
 REPO_ROOT = "/kaggle/working/Fast-PersonReID"
 os.chdir(REPO_ROOT)
 
-# 1. Market1501 dataset symlink (FastReID expects it under $FASTREID_DATASETS)
 DATASETS_ROOT = "/kaggle/working/datasets"
 os.makedirs(DATASETS_ROOT, exist_ok=True)
 market_link = os.path.join(DATASETS_ROOT, "Market-1501-v15.09.15")
@@ -26,7 +25,6 @@ if not os.path.exists(market_link):
     os.symlink(market_source, market_link)
 os.environ["FASTREID_DATASETS"] = DATASETS_ROOT
 
-# 2. SCHP mask dataset symlink (Mission 1 backup, see mask-file Kaggle dataset)
 os.makedirs(os.path.join(REPO_ROOT, "data"), exist_ok=True)
 mask_target = os.path.join(REPO_ROOT, "data", "masks_schp")
 mask_source = "/kaggle/input/datasets/jiniyatanjina/mask-file"
@@ -35,7 +33,6 @@ if os.path.islink(mask_target) and not os.path.exists(mask_target):
 if not os.path.exists(mask_target):
     os.symlink(mask_source, mask_target)
 
-# 3. sys.path entries needed to import fastreid and stcanet from anywhere
 for p in ["/kaggle/working/Fast-PersonReID", "/kaggle/working/Fast-PersonReID/external/fast-reid"]:
     if p not in sys.path:
         sys.path.insert(0, p)
@@ -44,4 +41,3 @@ print("Session setup complete.")
 print("  FASTREID_DATASETS =", os.environ["FASTREID_DATASETS"])
 print("  Market1501 linked:", os.path.exists(market_link), "-", os.listdir(market_link) if os.path.exists(market_link) else "MISSING")
 print("  Masks linked:", os.path.exists(mask_target), f"({len(os.listdir(mask_target))} folders)" if os.path.exists(mask_target) else "MISSING")
-print("  sys.path updated:", sys.path[:2])
