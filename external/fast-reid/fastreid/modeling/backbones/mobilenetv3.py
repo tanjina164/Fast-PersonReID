@@ -262,7 +262,7 @@ def _mobilenet_v3_model(
     model = MobileNetV3(bn_norm, inverted_residual_setting, last_channel, **kwargs)
     if pretrained:
         if pretrain_path:
-            state_dict = torch.load(pretrain_path, weights_only=False)
+            state_dict = torch.load(pretrain_path)
         else:
             if model_urls.get(depth, None) is None:
                 raise ValueError("No checkpoint is available for model type {}".format(depth))

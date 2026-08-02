@@ -449,7 +449,7 @@ def init_pretrained_weights(model, key=''):
 
     comm.synchronize()
 
-    state_dict = torch.load(cached_file, map_location=torch.device('cpu', weights_only=False))
+    state_dict = torch.load(cached_file, map_location=torch.device('cpu'))
     model_dict = model.state_dict()
     new_state_dict = OrderedDict()
     matched_layers, discarded_layers = [], []
@@ -497,7 +497,7 @@ def build_osnet_backbone(cfg):
         # Load pretrain path if specifically
         if pretrain_path:
             try:
-                state_dict = torch.load(pretrain_path, map_location=torch.device('cpu', weights_only=False))
+                state_dict = torch.load(pretrain_path, map_location=torch.device('cpu'))
                 logger.info(f"Loading pretrained model from {pretrain_path}")
             except FileNotFoundError as e:
                 logger.info(f'{pretrain_path} is not found! Please check this path.')
