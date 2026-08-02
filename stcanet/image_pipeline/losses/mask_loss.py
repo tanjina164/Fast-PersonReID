@@ -1,17 +1,22 @@
 """
-Mask-supervised spatial attention loss, ported directly from the Deepreid
-reference notebook ("Image Based Person ReID STCANet.ipynb"), unchanged.
-This is the original STCANet paper's own architecture contribution, not a
-deep-person-reid framework utility -- it is preserved exactly per the
-project's core constraint (only the mask-generation source and the
-backbone/training framework are being replaced).
+Mask-supervised spatial attention loss, ported from the Deepreid reference
+notebook ("Image Based Person ReID STCANet.ipynb"). Logic (L2/L1/BCE
+comparison against a bilinearly-resized ground-truth mask, averaged over
+all elements) is unchanged from the original.
 
-MaskLoss compares a predicted (b, 1, h, w) attention channel against a
-ground-truth (b, 1, h1, w1) mask, bilinearly interpolating the target to
-match the prediction's (smaller) spatial resolution.
-
-DeepSupervision averages MaskLoss across multiple predictions (here: the
-IAT attention maps produced after layer2 and layer3).
+ONE ADAPTATION for FastReID's AMP (mixed-precision) training: nn.BCELoss
+is not autocast-safe (PyTorch raises a RuntimeError if called under
+autocast), because a sigmoid immediately followed by BCE in FP16 can lose
+precision, biasing gradients. Since the IAT module already applies
+sigmoid to produce its attention maps (so we only have the sigmoid
+OUTPUT, not the pre-sigmoid logits, available here), we cannot switch to
+BCEWithLogitsLoss without changing IAT's output contract. Instead, for
+mode='ce', the loss computation is wrapped in
+`torch.cuda.amp.autocast(enabled=False)` -- this forces just this loss
+computation to run in FP32, which is numerically IDENTICAL to running
+nn.BCELoss outside of AMP entirely; it does not change what is computed,
+only the precision it is computed in. This is a standard, recommended
+pattern for AMP-incompatible loss functions, not an architecture change.
 """
 
 import torch
@@ -24,6 +29,7 @@ class MaskLoss(nn.Module):
 
     def __init__(self, mode='l2'):
         super(MaskLoss, self).__init__()
+        self.mode = mode
         if mode == 'l2':
             self.loss = nn.MSELoss()
         elif mode == 'l1':
@@ -38,6 +44,12 @@ class MaskLoss(nn.Module):
         targets = F.interpolate(targets, (h, w), mode='bilinear', align_corners=True)
         inputs = inputs.view(b, -1)
         targets = targets.view(b, -1)
+
+        if self.mode == 'ce':
+            # BCELoss is not autocast-safe; compute in FP32 explicitly.
+            with torch.cuda.amp.autocast(enabled=False):
+                return self.loss(inputs.float(), targets.float())
+
         return self.loss(inputs, targets)
 
 
